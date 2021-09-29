@@ -1,0 +1,38 @@
+读取数据：
+高密度的形式，即不区分收发电极
+
+dc data:
+ax  az  bx  bz  mx  mz  nx  nz  rho  std-err
+
+高密度格式有很多种，这里只给出这种最为简单的读取格式
+
+%====================================
+网格：混合网格
+研究区：四边形--》四个三角形
+扩展区：非结构网格，mesh2d生成
+%====================================
+% 有限元分析
+直接构成 大型矩阵的 索引， 用accumarray来构建大型矩阵
+kIndx = [I',I';I',J';I',M';...
+             J',I';J',J';J',M';...
+             M',I';M',J';M',M'];
+kkk = sparse([k11,k12,k13,k21,k22,k23,k31,k32,k33]);
+K = accumarray(fem.kIndx,kkk);
+% jacobian 矩阵
+        src=pa; rec=pm;
+        s1=aaa(src,a1)+aaa(src,a2)+aaa(src,a3);
+        s2=aaa(rec,a1)+aaa(rec,a2)+aaa(rec,a3);
+        sum1=s1.*s2+(aaa(src,a1).*aaa(rec,a1)+aaa(src,a2).*aaa(rec,a2)+aaa(src,a3).*aaa(rec,a3));  
+        sum1 = fem.k(kit)^2.*area.*sum1/12;
+        
+        x_flux1=aaa(src,a1).*b1+aaa(src,a2).*b2+aaa(src,a3).*b3;
+        x_flux2=aaa(rec,a1).*b1+aaa(rec,a2).*b2+aaa(rec,a3).*b3;
+        z_flux1=aaa(src,a1).*c1+aaa(src,a2).*c2+aaa(src,a3).*c3;
+        z_flux2=aaa(rec,a1).*c1+aaa(rec,a2).*c2+aaa(rec,a3).*c3;
+        sum2 = (x_flux1.*x_flux2+z_flux1.*z_flux2)./(4.*area);
+        jam=sum2 + sum1;
+%=============================================================
+正则化：
+由于，模型为四方形单元，Wx,Wz很容易构建
+
+** 这种方法只适合于无地形时的反演，或者加入地形校正因子来反演带地形数据
